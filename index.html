@@ -7977,6 +7977,12 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Preparing-the-Main-Dataframe">Preparing the Main Dataframe<a class="anchor-link" href="#Preparing-the-Main-Dataframe">¶</a></h2><p>Once data is downloaded and imported, it must be merged onto a single table. This is done by joining on the itinerary ID with an inner join. Before joining, the columns we need are selected to avoid issues with using too much memory.</p>
 <p>These are the important variables that we will be using:</p>
+<style>
+  table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+  th { background-color: #f2f2f2; }
+  tr:nth-child(even) { background-color: #fafafa; }
+</style>
 <table>
 <thead>
 <tr>
@@ -8442,7 +8448,7 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="c1"># @title Processing the data for analysis</span>
@@ -8466,12 +8472,12 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="c1"># @title Top 10 Connecting Routes by Revenue</span>
@@ -8484,12 +8490,192 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>--- Top 10 Connecting Routes by Revenue ---
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<div class="colab-df-container" id="df-b0db281b-868d-4e2d-999e-b61e082ef01f">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>Route</th>
+<th>EstimatedRevenue</th>
+<th>Passengers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>33499</th>
+<td>LAS-MCO</td>
+<td>1342500.44</td>
+<td>4402.0</td>
+</tr>
+<tr>
+<th>37923</th>
+<td>MCO-LAS</td>
+<td>1329285.67</td>
+<td>4287.0</td>
+</tr>
+<tr>
+<th>44238</th>
+<td>OGG-MSP</td>
+<td>1297383.27</td>
+<td>2881.0</td>
+</tr>
+<tr>
+<th>42749</th>
+<td>MSP-OGG</td>
+<td>1275308.96</td>
+<td>2868.0</td>
+</tr>
+<tr>
+<th>56323</th>
+<td>SFO-EWR</td>
+<td>1151379.74</td>
+<td>2371.0</td>
+</tr>
+<tr>
+<th>20663</th>
+<td>EWR-SFO</td>
+<td>1142185.60</td>
+<td>2314.0</td>
+</tr>
+<tr>
+<th>27703</th>
+<td>HNL-ORD</td>
+<td>1031257.04</td>
+<td>2198.0</td>
+</tr>
+<tr>
+<th>45423</th>
+<td>ORD-HNL</td>
+<td>995901.95</td>
+<td>2160.0</td>
+</tr>
+<tr>
+<th>27690</th>
+<td>HNL-MSP</td>
+<td>977294.31</td>
+<td>1924.0</td>
+</tr>
+<tr>
+<th>42666</th>
+<td>MSP-HNL</td>
+<td>972333.16</td>
+<td>1928.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="colab-df-buttons">
+<div class="colab-df-container">
+<button class="colab-df-convert" onclick="convertToInteractive('df-b0db281b-868d-4e2d-999e-b61e082ef01f')" style="display:none;" title="Convert this dataframe to an interactive table.">
+<svg height="24px" viewbox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
+<path d="M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z"></path>
+</svg>
+</button>
+<style>
+    .colab-df-container {
+      display:flex;
+      gap: 12px;
+    }
+
+    .colab-df-convert {
+      background-color: #E8F0FE;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      fill: #1967D2;
+      height: 32px;
+      padding: 0 0 0 0;
+      width: 32px;
+    }
+
+    .colab-df-convert:hover {
+      background-color: #E2EBFA;
+      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+      fill: #174EA6;
+    }
+
+    .colab-df-buttons div {
+      margin-bottom: 4px;
+    }
+
+    [theme=dark] .colab-df-convert {
+      background-color: #3B4455;
+      fill: #D2E3FC;
+    }
+
+    [theme=dark] .colab-df-convert:hover {
+      background-color: #434B5C;
+      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+      fill: #FFFFFF;
+    }
+  </style>
+<script>
+      const buttonEl =
+        document.querySelector('#df-b0db281b-868d-4e2d-999e-b61e082ef01f button.colab-df-convert');
+      buttonEl.style.display =
+        google.colab.kernel.accessAllowed ? 'block' : 'none';
+
+      async function convertToInteractive(key) {
+        const element = document.querySelector('#df-b0db281b-868d-4e2d-999e-b61e082ef01f');
+        const dataTable =
+          await google.colab.kernel.invokeFunction('convertToInteractive',
+                                                    [key], {});
+        if (!dataTable) return;
+
+        const docLinkHtml = 'Like what you see? Visit the ' +
+          '<a target="_blank" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'
+          + ' to learn more about interactive tables.';
+        element.innerHTML = '';
+        dataTable['output_type'] = 'display_data';
+        await google.colab.output.renderOutput(dataTable, element);
+        const docLink = document.createElement('div');
+        docLink.innerHTML = docLinkHtml;
+        element.appendChild(docLink);
+      }
+    </script>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="c1"># @title Top 10 Connecting Routes by Passengers</span>
@@ -8499,6 +8685,187 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Top 10 Connecting Routes by Passenger Count ---"</span><span class="p">)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">top_10_passengers</span><span class="p">[[</span><span class="s1">'Route'</span><span class="p">,</span> <span class="s1">'Passengers'</span><span class="p">,</span> <span class="s1">'EstimatedRevenue'</span><span class="p">]])</span>
 </pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>
+--- Top 10 Connecting Routes by Passenger Count ---
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<div class="colab-df-container" id="df-9dd62ec7-350d-45d7-87a9-56453bdea0cb">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+<thead>
+<tr style="text-align: right;">
+<th></th>
+<th>Route</th>
+<th>Passengers</th>
+<th>EstimatedRevenue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>33499</th>
+<td>LAS-MCO</td>
+<td>4402.0</td>
+<td>1342500.44</td>
+</tr>
+<tr>
+<th>37923</th>
+<td>MCO-LAS</td>
+<td>4287.0</td>
+<td>1329285.67</td>
+</tr>
+<tr>
+<th>37925</th>
+<td>MCO-LAX</td>
+<td>3678.0</td>
+<td>783187.82</td>
+</tr>
+<tr>
+<th>33995</th>
+<td>LAX-MCO</td>
+<td>3651.0</td>
+<td>755332.31</td>
+</tr>
+<tr>
+<th>38000</th>
+<td>MCO-PHX</td>
+<td>3312.0</td>
+<td>850157.40</td>
+</tr>
+<tr>
+<th>47708</th>
+<td>PHX-MCO</td>
+<td>3217.0</td>
+<td>823865.13</td>
+</tr>
+<tr>
+<th>58395</th>
+<td>SLC-MCO</td>
+<td>3019.0</td>
+<td>643660.08</td>
+</tr>
+<tr>
+<th>58512</th>
+<td>SLC-TPA</td>
+<td>2927.0</td>
+<td>888262.25</td>
+</tr>
+<tr>
+<th>38054</th>
+<td>MCO-SLC</td>
+<td>2894.0</td>
+<td>639752.94</td>
+</tr>
+<tr>
+<th>44238</th>
+<td>OGG-MSP</td>
+<td>2881.0</td>
+<td>1297383.27</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="colab-df-buttons">
+<div class="colab-df-container">
+<button class="colab-df-convert" onclick="convertToInteractive('df-9dd62ec7-350d-45d7-87a9-56453bdea0cb')" style="display:none;" title="Convert this dataframe to an interactive table.">
+<svg height="24px" viewbox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg">
+<path d="M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z"></path>
+</svg>
+</button>
+<style>
+    .colab-df-container {
+      display:flex;
+      gap: 12px;
+    }
+
+    .colab-df-convert {
+      background-color: #E8F0FE;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      fill: #1967D2;
+      height: 32px;
+      padding: 0 0 0 0;
+      width: 32px;
+    }
+
+    .colab-df-convert:hover {
+      background-color: #E2EBFA;
+      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);
+      fill: #174EA6;
+    }
+
+    .colab-df-buttons div {
+      margin-bottom: 4px;
+    }
+
+    [theme=dark] .colab-df-convert {
+      background-color: #3B4455;
+      fill: #D2E3FC;
+    }
+
+    [theme=dark] .colab-df-convert:hover {
+      background-color: #434B5C;
+      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
+      fill: #FFFFFF;
+    }
+  </style>
+<script>
+      const buttonEl =
+        document.querySelector('#df-9dd62ec7-350d-45d7-87a9-56453bdea0cb button.colab-df-convert');
+      buttonEl.style.display =
+        google.colab.kernel.accessAllowed ? 'block' : 'none';
+
+      async function convertToInteractive(key) {
+        const element = document.querySelector('#df-9dd62ec7-350d-45d7-87a9-56453bdea0cb');
+        const dataTable =
+          await google.colab.kernel.invokeFunction('convertToInteractive',
+                                                    [key], {});
+        if (!dataTable) return;
+
+        const docLinkHtml = 'Like what you see? Visit the ' +
+          '<a target="_blank" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'
+          + ' to learn more about interactive tables.';
+        element.innerHTML = '';
+        dataTable['output_type'] = 'display_data';
+        await google.colab.output.renderOutput(dataTable, element);
+        const docLink = document.createElement('div');
+        docLink.innerHTML = docLinkHtml;
+        element.appendChild(docLink);
+      }
+    </script>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -8514,16 +8881,31 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">jupyter</span> <span class="n">nbconvert</span> <span class="o">--</span><span class="n">to</span> <span class="n">html</span> <span class="s2">"/content/drive/MyDrive/Tulane/DataScience/Low Cost Carrier Flight Opportunities.ipynb"</span>
 </pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>[NbConvertApp] Converting notebook /content/drive/MyDrive/Tulane/DataScience/Low Cost Carrier Flight Opportunities.ipynb to html
+[NbConvertApp] WARNING | Alternative text is missing on 2 image(s).
+[NbConvertApp] Writing 427441 bytes to /content/drive/MyDrive/Tulane/DataScience/Low Cost Carrier Flight Opportunities.html
+</pre>
 </div>
 </div>
 </div>
