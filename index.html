@@ -8099,7 +8099,6 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
 <span class="n">df_market</span> <span class="o">=</span> <span class="n">df_market</span><span class="p">[</span><span class="n">market_cols</span><span class="p">]</span>
 <span class="n">df_coupon</span> <span class="o">=</span> <span class="n">df_coupon</span><span class="p">[</span><span class="n">coupon_cols</span><span class="p">]</span>
 
-<span class="c1"># Fix: Aggregate coupon data to determine if the itinerary is nonstop or connecting</span>
 <span class="c1"># If an ItinID has more than 1 row in the coupon table, it has a layover (1 = Connecting, 0 = Nonstop).</span>
 <span class="n">coupon_agg</span> <span class="o">=</span> <span class="n">df_coupon</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'ItinID'</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Legs'</span><span class="p">)</span>
 <span class="n">coupon_agg</span><span class="p">[</span><span class="s1">'Break'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">coupon_agg</span><span class="p">[</span><span class="s1">'Legs'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -9571,7 +9570,6 @@ File ../content/drive/MyDrive/Tulane/DataScience/db1b_coupon_2025q1.parquet alre
         <span class="c1"># 3. Filter immediately to save RAM</span>
         <span class="n">df_market_filtered</span> <span class="o">=</span> <span class="n">df_market</span><span class="p">[</span><span class="n">df_market</span><span class="p">[</span><span class="s1">'Route'</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">routes</span><span class="p">)]</span>
 
-        <span class="c1"># Fix: Aggregate coupon data before merging</span>
         <span class="n">coupon_agg</span> <span class="o">=</span> <span class="n">df_coupon</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'ItinID'</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Legs'</span><span class="p">)</span>
         <span class="n">coupon_agg</span><span class="p">[</span><span class="s1">'Break'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">coupon_agg</span><span class="p">[</span><span class="s1">'Legs'</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
@@ -11674,14 +11672,14 @@ R^2 Score: 0.8785
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [32]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [46]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="c1"># Let's test it on a cold-to-warm route in Q1!</span>
-<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="n">predict_profitability</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -11747,12 +11745,6 @@ Nonstop Competition: Yes
 Predicted Revenue/Profitability: $285,516.79
 ========================================
 </pre>
-</div>
-</div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[32]:</div>
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>np.float64(285516.7933773841)</pre>
 </div>
 </div>
 </div>
@@ -11963,10 +11955,10 @@ R^2 Score: 0.2465
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [36]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [47]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="n">predict_passengers</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'MSY'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="n">predict_passengers</span><span class="p">(</span><span class="s1">'ALB'</span><span class="p">,</span> <span class="s1">'MSY'</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -11994,11 +11986,16 @@ Predicted Passenger Count: -16 passengers
 </pre>
 </div>
 </div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[36]:</div>
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>np.float64(-15.534572311435852)</pre>
 </div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Limitations-of-a-Linear-Regression">Limitations of a Linear Regression<a class="anchor-link" href="#Limitations-of-a-Linear-Regression">¶</a></h2><p>Linear regression models don't know the acceptable range of predictions. A new route obviously would not have a negative impact on demand, but because the route we are testing is low demand in the first place, the model generalizes and predicts a negative passenger count.</p>
 </div>
 </div>
 </div>
@@ -12867,8 +12864,8 @@ R^2 Score: 0.1144
 <div class="jp-InputPrompt jp-InputArea-prompt">In [43]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-python"><pre><span></span><span class="c1"># Test it on ALB-MSY in Q1</span>
-<span class="n">predict_new_nonstop_revenue</span><span class="p">(</span><span class="s1">'MSY'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight hl-python"><pre><span></span><span class="c1"># Test it on MSY-TPA in Q1</span>
+<span class="n">predict_new_nonstop_revenue</span><span class="p">(</span><span class="s1">'MSY'</span><span class="p">,</span> <span class="s1">'TPA'</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -13195,16 +13192,31 @@ Predicted New Nonstop Revenue: $12,522.58
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [45]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-python"><pre><span></span><span class="err">!</span><span class="n">jupyter</span> <span class="n">nbconvert</span> <span class="o">--</span><span class="n">to</span> <span class="n">html</span> <span class="s2">"/content/drive/MyDrive/Tulane/DataScience/Low Cost Carrier Flight Opportunities.ipynb"</span> <span class="o">--</span><span class="n">output</span> <span class="n">index</span><span class="o">.</span><span class="n">html</span>
 </pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>[NbConvertApp] Converting notebook /content/drive/MyDrive/Tulane/DataScience/Low Cost Carrier Flight Opportunities.ipynb to html
+[NbConvertApp] WARNING | Alternative text is missing on 8 image(s).
+[NbConvertApp] Writing 1414710 bytes to /content/drive/MyDrive/Tulane/DataScience/index.html
+</pre>
 </div>
 </div>
 </div>
