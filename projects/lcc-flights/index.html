@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Low-Cost Carrier Flight Opportunities | Isaiah Kushner</title>
+  <meta name="description" content="Interactive walkthrough of an analysis of BTS airline itinerary data to find nonstop route opportunities for ultra-low-cost carriers.">
+  <script>
+    // Match the portfolio's saved theme before first paint
+    try {
+      var t = localStorage.getItem('portfolio-theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  </script>
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-light: rgba(37, 99, 235, 0.1);
+      --accent-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      --border-color: #e2e8f0;
+      --card-bg: #ffffff;
+      --grid: #e2e8f0;
+      --series-1: #2a78d6;  /* nonstop / legacy */
+      --series-2: #eb6834;  /* connecting / low cost */
+      --div-neg: #2a78d6;
+      --div-mid: #f0efec;
+      --div-pos: #e34948;
+      --good: #0ca30c;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-light: rgba(56, 189, 248, 0.12);
+      --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      --border-color: #334155;
+      --card-bg: #1e293b;
+      --grid: #334155;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --div-neg: #3987e5;
+      --div-mid: #383835;
+      --div-pos: #e66767;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+    /* Top bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .topbar .container { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.95rem; }
+    .toc { display: flex; gap: 18px; font-size: 0.88rem; }
+    .toc a { color: var(--text-secondary); }
+    .toc a:hover { color: var(--accent); text-decoration: none; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1px solid var(--border-color); background: var(--card-bg);
+      color: var(--text-primary); cursor: pointer; display: grid; place-items: center;
+    }
+    .icon-btn svg { width: 18px; height: 18px; }
+    @media (max-width: 760px) { .toc { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 32px; }
+    .tag {
+      display: inline-block; font-size: 0.8rem; font-weight: 600;
+      color: var(--accent); background: var(--accent-light);
+      padding: 4px 12px; border-radius: 999px; margin-bottom: 16px;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.02em; }
+    h1 span { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lede { color: var(--text-secondary); font-size: 1.08rem; max-width: 760px; margin-top: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px; }
+    @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; }
+    .stat .num { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat .lbl { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Sections */
+    section { padding: 36px 0; }
+    .step { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); letter-spacing: 0.05em; }
+    h2 { font-size: 1.6rem; margin: 4px 0 8px; letter-spacing: -0.01em; }
+    .sub { color: var(--text-secondary); max-width: 760px; margin-bottom: 20px; }
+    .card {
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg); padding: 20px;
+    }
+    .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+    .grid-2 > *, .models > * { min-width: 0; }
+    @media (max-width: 860px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+    .card h3 { font-size: 1.02rem; margin-bottom: 4px; }
+    .card .note { color: var(--text-muted); font-size: 0.82rem; }
+    .insight {
+      margin-top: 16px; padding: 12px 16px; border-left: 3px solid var(--accent);
+      background: var(--accent-light); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      color: var(--text-secondary); font-size: 0.95rem;
+    }
+    .insight strong { color: var(--text-primary); }
+
+    /* Controls */
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .seg { display: inline-flex; border: 1px solid var(--border-color); border-radius: 999px; padding: 3px; background: var(--bg-tertiary); flex-wrap: wrap; }
+    .seg button {
+      border: 0; background: transparent; color: var(--text-secondary);
+      font: inherit; font-size: 0.85rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 999px; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] { background: var(--card-bg); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .ctl-label { font-size: 0.82rem; color: var(--text-muted); margin-right: 4px; }
+
+    .chart-box { position: relative; height: 300px; }
+    .chart-box.tall { height: 360px; }
+
+    /* Legend */
+    .legend { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-secondary); margin: 6px 0 10px; flex-wrap: wrap; }
+    .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--text-muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    tbody tr { cursor: default; }
+    tbody tr.clickable { cursor: pointer; }
+    tbody tr:hover { background: var(--bg-tertiary); }
+    tbody tr.selected { background: var(--accent-light); }
+    .route { font-family: var(--font-mono); font-weight: 600; }
+    .pill { display: inline-block; font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--bg-tertiary); color: var(--text-secondary); margin-left: 6px; }
+    .pill.good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+
+    /* Weather */
+    .temps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    @media (max-width: 560px) { .temp { padding: 10px 4px; } .temp .deg { font-size: 1.3rem; } }
+    .temp { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; text-align: center; }
+    .temp .code { font-family: var(--font-mono); font-weight: 700; }
+    .temp .city { font-size: 0.8rem; color: var(--text-muted); }
+    .temp .deg { font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 4px; }
+    .gap-line { margin-top: 14px; color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* Models */
+    .models { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 860px) { .models { grid-template-columns: 1fr; } }
+    .model .kind { font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .model .target { font-size: 0.9rem; color: var(--text-secondary); margin: 6px 0 12px; }
+    .meter { height: 8px; background: var(--bg-tertiary); border-radius: 999px; overflow: hidden; margin: 4px 0 2px; }
+    .meter > div { height: 100%; background: var(--series-1); border-radius: 999px; }
+    .metric-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); }
+    .metric-row b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+    /* Heatmap */
+    .heat { display: grid; grid-template-columns: 96px repeat(6, minmax(0, 1fr)); gap: 2px; font-size: 0.74rem; }
+    .heat .h { color: var(--text-muted); display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px 2px; line-height: 1.2; }
+    .heat .r { justify-content: flex-end; padding-right: 8px; }
+    .heat .c { aspect-ratio: 1.6; display: grid; place-items: center; border-radius: 4px; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-primary); }
+    @media (max-width: 560px) {
+      .heat { grid-template-columns: 64px repeat(6, minmax(0, 1fr)); font-size: 0.62rem; gap: 1px; }
+      .heat .c { aspect-ratio: 1.1; }
+      .card { padding: 14px; }
+    }
+
+    /* Predictor */
+    .slider-row { display: flex; align-items: center; gap: 14px; margin: 8px 0 18px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    .pred-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .pred-out div { border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; }
+    .pred-out .k { font-size: 0.78rem; color: var(--text-muted); }
+    .pred-out .v { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    @media (max-width: 560px) { .pred-out { grid-template-columns: 1fr; } }
+
+    .detail { margin-top: 14px; min-height: 64px; color: var(--text-secondary); font-size: 0.92rem; }
+    .detail .route { color: var(--text-primary); }
+
+    /* Predictor */
+    .predictor { border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color)); }
+    .pred-form { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+    .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .field input {
+      font: inherit; font-size: 1rem; font-weight: 500; color: var(--text-primary);
+      background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md);
+      padding: 10px 12px; width: 100%;
+    }
+    .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+    .swap { margin-bottom: 3px; }
+    .primary-btn {
+      font: inherit; font-weight: 600; border: 0; border-radius: var(--radius-md); cursor: pointer;
+      padding: 11px 22px; background: var(--accent); color: var(--bg-primary);
+    }
+    .primary-btn:disabled { opacity: 0.6; cursor: wait; }
+    @media (max-width: 640px) {
+      .pred-form { grid-template-columns: minmax(0, 1fr) auto; }
+      .pred-form .field:nth-of-type(2) { grid-column: 1; }
+      .swap { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+      .primary-btn { grid-column: 1 / -1; }
+    }
+    .examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; }
+    .examples button {
+      font: inherit; font-size: 0.8rem; font-family: var(--font-mono); cursor: pointer;
+      border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-secondary);
+      border-radius: 999px; padding: 3px 10px;
+    }
+    .examples button:hover { color: var(--accent); border-color: var(--accent); }
+    .pred-status { margin-top: 14px; font-size: 0.9rem; color: var(--text-secondary); }
+    .pred-status:empty { display: none; }
+    .pred-status.error { color: var(--div-pos); }
+    .pred-head { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin: 18px 0 12px; }
+    .pred-head .k { font-size: 0.8rem; color: var(--text-muted); }
+    .pred-head .big { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .facts { display: grid; grid-template-columns: repeat(2, auto); gap: 4px 20px; font-size: 0.88rem; align-content: start; }
+    .facts span { color: var(--text-muted); }
+    .facts b { font-weight: 600; font-variant-numeric: tabular-nums; }
+    tr.best td { font-weight: 700; }
+
+    footer { padding: 40px 0 56px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border-color); margin-top: 24px; }
+    ul.limits { padding-left: 20px; color: var(--text-secondary); }
+    ul.limits li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <a class="back" href="../../index.html#projects">&larr; Portfolio</a>
+    <nav class="toc">
+      <a href="#predict">Predict</a>
+      <a href="#fares">Fares</a>
+      <a href="#routes">Connecting routes</a>
+      <a href="#ulcc">ULCC routes</a>
+      <a href="#models">Models</a>
+      <a href="#opportunities">Opportunities</a>
+    </nav>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle light and dark theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="hero">
+    <span class="tag">Data Science &middot; Python &middot; Aviation</span>
+    <h1>Low-Cost Carrier <span>Flight Opportunities</span></h1>
+    <p class="lede">
+      Spirit Airlines filed for bankruptcy twice in a year and has since stopped flying. Ultra-low-cost carriers (ULCCs) live or die by picking the right nonstop routes.
+      This project uses Bureau of Transportation Statistics itinerary data to find out which routes could keep that business model alive.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="num">7.3M</div><div class="lbl">itineraries in 2025 Q1 (10% BTS sample)</div></div>
+      <div class="stat"><div class="num">11.2%</div><div class="lbl">of those itineraries are nonstop</div></div>
+      <div class="stat"><div class="num">6</div><div class="lbl">quarters analyzed (2024 Q1&ndash;2025 Q2)</div></div>
+      <div class="stat"><div class="num">3,221</div><div class="lbl">routes that gained a new nonstop</div></div>
+    </div>
+  </div>
+
+  <!-- Route predictor -->
+  <section id="predict" style="padding-top:8px">
+    <div class="card predictor">
+      <div class="step">TRY THE MODEL</div>
+      <h2 style="margin-top:2px">Predict a route's revenue</h2>
+      <p class="sub" style="margin-bottom:16px">Pick two airports. The page fetches 2024 weather for both ends from Open-Meteo, looks up current demand, and runs Model 1 (linear regression) for each quarter of the year.</p>
+
+      <form id="pred-form" class="pred-form" autocomplete="off">
+        <label class="field">
+          <span>From</span>
+          <input id="pf-orig" list="airport-list" placeholder="e.g. ALB" required maxlength="60" aria-label="Origin airport">
+        </label>
+        <button type="button" class="icon-btn swap" id="pf-swap" aria-label="Swap origin and destination">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M3 8l4-4 4 4M17 8v12M21 16l-4 4-4-4"/></svg>
+        </button>
+        <label class="field">
+          <span>To</span>
+          <input id="pf-dest" list="airport-list" placeholder="e.g. TPA" required maxlength="60" aria-label="Destination airport">
+        </label>
+        <button type="submit" class="primary-btn" id="pf-go">Predict</button>
+      </form>
+      <datalist id="airport-list"></datalist>
+      <div class="examples">
+        <span class="ctl-label">Examples</span>
+        <button type="button" data-ex="ALB-TPA">ALB&rarr;TPA</button>
+        <button type="button" data-ex="BOS-SJU">BOS&rarr;SJU</button>
+        <button type="button" data-ex="MSP-MCO">MSP&rarr;MCO</button>
+        <button type="button" data-ex="MSY-DEN">MSY&rarr;DEN</button>
+      </div>
+
+      <div id="pred-status" class="pred-status" role="status" aria-live="polite"></div>
+
+      <div id="pred-result" hidden>
+        <div class="pred-head">
+          <div>
+            <div class="k">Best quarter</div>
+            <div class="big" id="pr-best"></div>
+            <div class="k" id="pr-best-sub"></div>
+          </div>
+          <div class="facts" id="pr-facts"></div>
+        </div>
+        <div class="chart-box" style="height:220px"><canvas id="predChart" aria-label="Predicted revenue by quarter"></canvas></div>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr><th>Quarter</th><th id="pr-oh">Origin temp</th><th id="pr-dh">Dest temp</th><th>Predicted revenue</th></tr></thead>
+            <tbody id="pr-body"></tbody>
+          </table>
+        </div>
+        <p class="note" id="pr-note" style="margin-top:10px"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. Fares -->
+  <section id="fares">
+    <div class="step">01 &middot; FARES</div>
+    <h2>Are nonstop flights more expensive?</h2>
+    <p class="sub">Looking at every ticket together, nonstop fares look about $33 higher. Split the same data by carrier type and the picture changes.</p>
+    <div class="card">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Fare view">
+          <button data-fare="all" aria-pressed="true">All carriers</button>
+          <button data-fare="split" aria-pressed="false">Legacy vs. low cost</button>
+        </div>
+      </div>
+      <div class="legend" id="fare-legend"></div>
+      <div class="chart-box"><canvas id="fareChart" aria-label="Average fare bar chart"></canvas></div>
+      <div class="insight" id="fare-insight"></div>
+    </div>
+  </section>
+
+  <!-- 2. Top connecting routes -->
+  <section id="routes">
+    <div class="step">02 &middot; DEMAND</div>
+    <h2>The busiest connecting routes</h2>
+    <p class="sub">These are the markets where the most passengers still make a connection. Each one already has a nonstop option, yet most travelers still connect.</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="controls">
+          <span class="ctl-label">Rank by</span>
+          <div class="seg" role="group" aria-label="Rank connecting routes by">
+            <button data-rank="Passengers" aria-pressed="true">Passengers</button>
+            <button data-rank="EstimatedRevenue" aria-pressed="false">Revenue</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Route</th><th>Passengers</th><th>Est. revenue</th><th>Avg fare</th></tr></thead>
+            <tbody id="conn-body"></tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:8px">Connecting itineraries only, 2025 Q1, 10% sample.</p>
+      </div>
+      <div class="card">
+        <h3>Connecting vs. nonstop average fare</h3>
+        <p class="note">Top 10 connecting routes by passengers, next to their nonstop equivalents</p>
+        <div class="legend"><span><i style="background:var(--series-2)"></i>Connecting</span><span><i style="background:var(--series-1)"></i>Nonstop</span></div>
+        <div class="chart-box tall"><canvas id="routeFareChart" aria-label="Connecting vs nonstop fares by route"></canvas></div>
+      </div>
+    </div>
+    <div class="insight"><strong>The fare gap is small.</strong> Nonstop usually costs $15&ndash;60 more, and on EWR&rarr;MCO and PHL&rarr;MCO it's actually cheaper. Connecting still carries 1.5&ndash;4&times; the passengers, so price alone doesn't explain it. Carrier choice, loyalty programs and employer travel rules matter too.</div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="controls">
+        <span class="ctl-label">Route</span>
+        <div class="seg" role="group" aria-label="Carrier breakdown route" id="carrier-seg"></div>
+      </div>
+      <h3>Top 3 carriers on the route</h3>
+      <p class="note">Passengers by carrier, connecting vs. nonstop (2025 Q1). Values read from the notebook's chart, so they're approximate.</p>
+      <div class="legend"><span><i style="background:var(--series-2)"></i>Connecting</span><span><i style="background:var(--series-1)"></i>Nonstop</span></div>
+      <div class="chart-box"><canvas id="carrierChart" aria-label="Carrier breakdown chart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 3. ULCC routes -->
+  <section id="ulcc">
+    <div class="step">03 &middot; ULCC MARKETS</div>
+    <h2>Where ULCCs dominate: warm-weather leisure</h2>
+    <p class="sub">Leaving out Southwest, every top-10 ULCC route starts or ends somewhere warm, mostly Florida or Puerto Rico. On leisure routes like these, travelers care more about price than which airline they fly.</p>
+
+    <div class="card">
+      <div class="controls">
+        <span class="ctl-label">Compare trend</span>
+        <div class="seg" role="group" aria-label="Trend route" id="trend-seg">
+          <button data-trend="bos" aria-pressed="true">BOS &harr; MCO (ULCC-heavy)</button>
+          <button data-trend="las" aria-pressed="false">LAS &harr; MCO</button>
+        </div>
+      </div>
+      <h3>Passengers over time</h3>
+      <p class="note">Both directions combined. Values read from the notebook's chart, so they're approximate.</p>
+      <div class="legend"><span><i style="background:var(--series-2)"></i>Connecting</span><span><i style="background:var(--series-1)"></i>Nonstop</span></div>
+      <div class="chart-box"><canvas id="trendChart" aria-label="Passenger trend line chart"></canvas></div>
+      <div class="insight" id="trend-insight"></div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card">
+        <h3>Top 10 ULCC routes by passengers</h3>
+        <p class="note">Carriers: NK, B6, F9, G4, AS, 2025 Q1</p>
+        <div class="table-wrap" style="margin-top:10px">
+          <table>
+            <thead><tr><th>Route</th><th>Passengers</th><th>Est. revenue</th></tr></thead>
+            <tbody id="ulcc-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Escaping the cold</h3>
+        <p class="note">Quarterly mean temperature, 2024 (Open-Meteo historical API)</p>
+        <div class="controls" style="margin-top:12px">
+          <div class="seg" role="group" aria-label="Quarter" id="q-seg"></div>
+        </div>
+        <div class="temps" id="temps"></div>
+        <p class="gap-line" id="gap-line"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Models -->
+  <section id="models">
+    <div class="step">04 &middot; MODELS</div>
+    <h2>Three ways to predict a good route</h2>
+    <p class="sub">Each route is described by its distance, region, existing demand, whether a nonstop already flies it, and the temperature at both ends.</p>
+    <div class="models">
+      <div class="card model">
+        <div class="kind">Model 1 &middot; Linear regression</div>
+        <h3>Route revenue</h3>
+        <p class="target">Predicts a route's total market revenue</p>
+        <div class="metric-row"><span>R&sup2;</span><b>0.879</b></div>
+        <div class="meter"><div style="width:87.9%"></div></div>
+        <div class="metric-row" style="margin-top:8px"><span>RMSE</span><b>$66,121</b></div>
+      </div>
+      <div class="card model">
+        <div class="kind">Model 2 &middot; Linear regression</div>
+        <h3>Passenger count</h3>
+        <p class="target">Predicts passengers when existing demand isn't known</p>
+        <div class="metric-row"><span>R&sup2;</span><b>0.247</b></div>
+        <div class="meter"><div style="width:24.7%"></div></div>
+        <div class="metric-row" style="margin-top:8px"><span>RMSE</span><b>803 pax</b></div>
+      </div>
+      <div class="card model">
+        <div class="kind">Model 3 &middot; Random forest</div>
+        <h3>New nonstop revenue</h3>
+        <p class="target">Trained on 3,221 routes that gained their first nonstop</p>
+        <div class="metric-row"><span>R&sup2;</span><b>0.114</b></div>
+        <div class="meter"><div style="width:11.4%"></div></div>
+        <div class="metric-row" style="margin-top:8px"><span>RMSE</span><b>$8,261</b></div>
+      </div>
+    </div>
+    <div class="insight">Model 1's high R&sup2; comes mostly from existing demand: passengers and revenue correlate at 0.94. Without that feature (Model 2), weather, distance and region explain far less, which is why Model 3 uses a random forest to capture non-linear effects and avoid negative predictions.</div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card">
+        <h3>Correlation between variables</h3>
+        <p class="note">Hover a cell for the pair. Blue is negative, red is positive.</p>
+        <div class="heat" id="heat" style="margin-top:14px"></div>
+      </div>
+      <div class="card">
+        <h3>Try it: Albany &rarr; Tampa by season</h3>
+        <p class="note">Model 1 output from the notebook for ALB&rarr;TPA (1,132 mi, 1,342 passengers, nonstop competition)</p>
+        <div class="slider-row">
+          <span class="ctl-label">Quarter</span>
+          <input type="range" min="1" max="4" step="1" value="1" id="q-slider" aria-label="Quarter">
+          <b id="q-label">Q1</b>
+        </div>
+        <div class="pred-out">
+          <div><div class="k">ALB temp</div><div class="v" id="p-orig"></div></div>
+          <div><div class="k">TPA temp</div><div class="v" id="p-dest"></div></div>
+          <div><div class="k">Predicted revenue</div><div class="v" id="p-rev"></div></div>
+        </div>
+        <p class="gap-line" id="p-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Opportunities -->
+  <section id="opportunities">
+    <div class="step">05 &middot; OPPORTUNITIES</div>
+    <h2>Recommended new nonstop routes</h2>
+    <p class="sub">Model 3 scored every route that has no nonstop service yet. Here are the 10 with the highest predicted nonstop revenue. Filter by region, then click a route for details.</p>
+    <div class="card">
+      <div class="controls">
+        <span class="ctl-label">Touches region</span>
+        <div class="seg" role="group" aria-label="Region filter" id="region-seg"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Route</th><th>Distance (mi)</th><th>Connecting demand</th><th>Regions</th><th>Predicted revenue</th></tr></thead>
+          <tbody id="opp-body"></tbody>
+        </table>
+      </div>
+      <div class="detail" id="opp-detail">Select a route to see details.</div>
+    </div>
+    <div class="insight"><strong>The model found routes airlines also picked.</strong> JetBlue has since launched JFK&ndash;SMF and JFK&ndash;ONT, and Alaska and Delta now fly SFO&ndash;ANC.</div>
+  </section>
+
+  <section id="limits">
+    <div class="step">06 &middot; LIMITATIONS</div>
+    <h2>What the models can't see</h2>
+    <ul class="limits">
+      <li><strong>Revenue isn't profit.</strong> Fleet, hub location and cost structure differ by airline, so a route that pays off for one carrier can lose money for another.</li>
+      <li><strong>Linear models don't know the valid range.</strong> Model 2 predicts &minus;16 passengers for ALB&rarr;MSY, which is impossible.</li>
+      <li><strong>The temperature input is a proxy.</strong> Training used a latitude-based temperature estimate to stay under API rate limits. Real Open-Meteo data is used only at prediction time.</li>
+      <li><strong>The data is a 10% sample.</strong> BTS DB1B publishes a 10% ticket sample, so absolute passenger and revenue numbers are understated.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    Data: <a href="https://transtats.bts.gov/" target="_blank" rel="noopener">BTS DB1B Market &amp; Coupon</a>,
+    <a href="https://openflights.org/data" target="_blank" rel="noopener">OpenFlights</a>,
+    <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>.
+    Analysis by Isaiah Kushner in Python (pandas, scikit-learn). &middot; <a href="../../index.html#projects">Back to portfolio</a>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  // ---------------- Data (from notebook outputs) ----------------
+  const FARES = {
+    all: { labels: ['Nonstop', 'Connecting'], series: [{ name: 'All carriers', key: 'series-1', data: [306.12, 273.15] }] },
+    split: { labels: ['Nonstop', 'Connecting'], series: [
+      { name: 'Legacy (AA, DL, UA)', key: 'series-1', data: [412.03, 327.12] },
+      { name: 'Low cost (NK, WN, B6, F9, G4, AS)', key: 'series-2', data: [225.58, 203.73] }
+    ]}
+  };
+  const FARE_INSIGHT = {
+    all: '<strong>This view is misleading.</strong> Connecting tickets look cheaper, but legacy carriers sell most connecting itineraries and charge more overall. Switch to the carrier split.',
+    split: '<strong>Within each carrier type the gap shrinks.</strong> Fares follow what travelers are willing to pay (dynamic pricing), not what the flight costs to run. Low-cost carriers price nonstops only about $22 above connections.'
+  };
+
+  const CONNECTING = [
+    { r: 'LAX-JFK', p: 16519, rev: 6589100.64 }, { r: 'JFK-LAX', p: 16418, rev: 6534146.15 },
+    { r: 'SFO-EWR', p: 10743, rev: 5206628.72 }, { r: 'EWR-SFO', p: 10707, rev: 5185903.26 },
+    { r: 'JFK-SFO', p: 10822, rev: 4058547.45 }, { r: 'SFO-JFK', p: 10769, rev: 4036682.15 },
+    { r: 'LAX-EWR', p: 10427, rev: 3531607.51 }, { r: 'EWR-LAX', p: 10354, rev: 3526906.24 },
+    { r: 'MCO-DTW', p: 14313, rev: 2806338.14 }, { r: 'DTW-MCO', p: 14179, rev: 2763585.45 },
+    { r: 'MCO-EWR', p: 16732, rev: 2646424.56 }, { r: 'EWR-MCO', p: 16690, rev: 2642695.75 },
+    { r: 'DEN-PHX', p: 16040, rev: 2234932.34 }, { r: 'PHX-DEN', p: 16033, rev: 2231111.18 },
+    { r: 'ORD-LGA', p: 15241, rev: 2498349.08 }, { r: 'LGA-ORD', p: 15235, rev: 2488612.49 },
+    { r: 'PHL-MCO', p: 14676, rev: 2339644.63 }, { r: 'MCO-PHL', p: 14645, rev: 2336825.67 }
+  ];
+  const NONSTOP = {
+    'LAX-JFK': [10522, 4835765], 'JFK-LAX': [10152, 4454960], 'MCO-EWR': [6262, 1095568],
+    'EWR-MCO': [6121, 931057], 'ORD-LGA': [5950, 1069666], 'LGA-ORD': [5812, 1099486],
+    'MCO-PHL': [4308, 745959], 'PHX-DEN': [4177, 653013], 'DEN-PHX': [4125, 638147], 'PHL-MCO': [3949, 549114]
+  };
+
+  // Approximate values read from the notebook's chart images
+  const CARRIERS = {
+    'LAS-MCO': { carriers: ['Southwest', 'Frontier', 'Spirit'], conn: [1655, 1115, 910], non: [505, 210, 350] },
+    'MCO-LAS': { carriers: ['Southwest', 'Frontier', 'Spirit'], conn: [1635, 1105, 870], non: [410, 240, 365] },
+    'OGG-MSP': { carriers: ['Delta', 'Unknown/Other', 'United'], conn: [655, 300, 290], non: [0, 0, 0] },
+    'SLC-TPA': { carriers: ['Delta', 'Southwest', 'American'], conn: [1165, 645, 240], non: [212, 22, 0] }
+  };
+  const PERIODS = ['2024 Q1', '2024 Q2', '2024 Q3', '2024 Q4', '2025 Q1', '2025 Q2'];
+  const TRENDS = {
+    las: { conn: [10300, 11150, 9200, 10520, 9980, 10510], non: [2470, 2960, 2470, 2700, 2130, 2830],
+      insight: 'On LAS&harr;MCO, connecting traffic outnumbers nonstop by roughly <strong>4 to 1</strong> every quarter, even though nonstop service exists.' },
+    bos: { conn: [27250, 24900, 21350, 23500, 24800, 22300], non: [12680, 12330, 11370, 12530, 12780, 10790],
+      insight: 'On ULCC-heavy BOS&harr;MCO the ratio narrows to roughly <strong>2 to 1</strong>. Nonstop carries a much larger share on this leisure route.' }
+  };
+
+  const ULCC = [
+    ['MCO-BOS', 13109, 2278469.07], ['BOS-MCO', 12605, 2029383.94], ['SJU-MCO', 12158, 1766721.23],
+    ['MCO-SJU', 12041, 1615375.45], ['SJU-JFK', 10616, 1908954.97], ['FLL-BOS', 10281, 1682924.66],
+    ['JFK-SJU', 10154, 1653348.97], ['MCO-EWR', 10074, 1266499.26], ['BOS-FLL', 10070, 1487808.87],
+    ['EWR-MCO', 9797, 1146393.19]
+  ];
+  const TEMPS = {
+    BOS: { city: 'Boston', t: [35.5, 58.6, 70.2, 45.5] },
+    EWR: { city: 'Newark', t: [38.4, 62.8, 73.1, 48.0] },
+    SJU: { city: 'San Juan', t: [78.1, 80.9, 82.9, 81.1] }
+  };
+
+  const CORR_VARS = ['Revenue', 'Passengers', 'Distance', 'Orig temp', 'Dest temp', 'Nonstop exists'];
+  const CORR = [
+    [1.00, 0.94, 0.01, 0.05, 0.04, 0.48],
+    [0.94, 1.00, -0.03, 0.05, 0.05, 0.50],
+    [0.01, -0.03, 1.00, 0.11, 0.11, -0.12],
+    [0.05, 0.05, 0.11, 1.00, -0.01, 0.05],
+    [0.04, 0.05, 0.11, -0.01, 1.00, 0.05],
+    [0.48, 0.50, -0.12, 0.05, 0.05, 1.00]
+  ];
+
+  const ALB_TPA = [
+    { o: 34.0, d: 63.5, rev: 287504.12 }, { o: 60.7, d: 78.9, rev: 281633.76 },
+    { o: 70.6, d: 81.7, rev: 280000.40 }, { o: 42.2, d: 69.2, rev: 285516.79 }
+  ];
+
+  const OPPS = [
+    { o: 'JFK', d: 'SMF', pax: 681, dist: 2514.9, or: 'Northeast', dr: 'West', rev: 73475.05, launched: 'Launched by JetBlue' },
+    { o: 'JFK', d: 'ONT', pax: 409, dist: 2424.1, or: 'Northeast', dr: 'West', rev: 69910.10, launched: 'Launched by JetBlue' },
+    { o: 'SFO', d: 'ANC', pax: 284, dist: 2015.7, or: 'West', dr: 'West', rev: 67985.36, launched: 'Flown by Alaska & Delta' },
+    { o: 'ONT', d: 'JFK', pax: 377, dist: 2424.1, or: 'West', dr: 'Northeast', rev: 64763.82 },
+    { o: 'SMF', d: 'JFK', pax: 629, dist: 2514.9, or: 'West', dr: 'Northeast', rev: 61818.00 },
+    { o: 'JFK', d: 'KOA', pax: 359, dist: 4945.4, or: 'Northeast', dr: 'West', rev: 53775.01 },
+    { o: 'SJC', d: 'ANC', pax: 131, dist: 2042.7, or: 'West', dr: 'West', rev: 53252.88 },
+    { o: 'BOS', d: 'SJC', pax: 424, dist: 2682.3, or: 'Northeast', dr: 'West', rev: 52885.18 },
+    { o: 'ANC', d: 'STT', pax: 4, dist: 4948.4, or: 'West', dr: 'South', rev: 52628.18 },
+    { o: 'SFO', d: 'FAI', pax: 316, dist: 2145.8, or: 'West', dr: 'West', rev: 51511.44 }
+  ];
+
+  // ---------------- Helpers ----------------
+  const $ = (s) => document.querySelector(s);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const money = (n, d = 0) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const num = (n) => n.toLocaleString('en-US');
+  const short$ = (n) => n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : '$' + Math.round(n / 1e3) + 'K';
+
+  function segment(group, onPick) {
+    group.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      group.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', 'true');
+      onPick(b);
+    }));
+  }
+
+  const charts = {};
+  function baseOpts(extra) {
+    const ink = css('--text-secondary'), grid = css('--grid');
+    return Object.assign({
+      responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: css('--bg-secondary'), titleColor: css('--text-primary'), bodyColor: ink,
+          borderColor: css('--border-color'), borderWidth: 1, padding: 10, boxPadding: 4 }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: ink }, border: { color: grid } },
+        y: { grid: { color: grid }, ticks: { color: ink }, border: { display: false }, beginAtZero: true }
+      }
+    }, extra || {});
+  }
+  const bar = (label, data, colorVar) => ({
+    label, data, backgroundColor: css(colorVar), borderRadius: 4, borderSkipped: 'start',
+    borderColor: css('--card-bg'), borderWidth: { left: 1, right: 1 }, maxBarThickness: 64
+  });
+
+  // ---------------- 1. Fares ----------------
+  let fareView = 'all';
+  function drawFares() {
+    const v = FARES[fareView];
+    $('#fare-legend').innerHTML = v.series.length > 1
+      ? v.series.map((s) => `<span><i style="background:var(--${s.key})"></i>${s.name}</span>`).join('') : '';
+    $('#fare-insight').innerHTML = FARE_INSIGHT[fareView];
+    charts.fare && charts.fare.destroy();
+    charts.fare = new Chart($('#fareChart'), {
+      type: 'bar',
+      data: { labels: v.labels, datasets: v.series.map((s) => bar(s.name, s.data, '--' + s.key)) },
+      options: baseOpts({
+        plugins: Object.assign(baseOpts().plugins, {
+          tooltip: Object.assign(baseOpts().plugins.tooltip, { callbacks: { label: (c) => `${c.dataset.label}: ${money(c.raw, 2)}` } })
+        }),
+        scales: Object.assign(baseOpts().scales, {
+          y: Object.assign(baseOpts().scales.y, { title: { display: true, text: 'Average fare (USD)', color: css('--text-muted') }, ticks: { color: css('--text-secondary'), callback: (v) => '$' + v } })
+        })
+      }),
+      plugins: [valueLabels((v) => money(v, 2))]
+    });
+  }
+  // Direct labels on top of bars (few bars only)
+  function valueLabels(fmt) {
+    return {
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.fillStyle = css('--text-primary');
+        ctx.font = '600 12px ' + css('--font-sans');
+        ctx.textAlign = 'center';
+        chart.data.datasets.forEach((ds, i) => {
+          chart.getDatasetMeta(i).data.forEach((el, j) => ctx.fillText(fmt(ds.data[j]), el.x, el.y - 6));
+        });
+        ctx.restore();
+      }
+    };
+  }
+  segment($('[aria-label="Fare view"]'), (b) => { fareView = b.dataset.fare; drawFares(); });
+
+  // ---------------- 2. Connecting routes ----------------
+  let rankKey = 'Passengers';
+  function drawConnTable() {
+    const rows = CONNECTING.slice().sort((a, b) => rankKey === 'Passengers' ? b.p - a.p : b.rev - a.rev).slice(0, 10);
+    $('#conn-body').innerHTML = rows.map((r) =>
+      `<tr><td class="route">${r.r}</td><td>${num(r.p)}</td><td>${short$(r.rev)}</td><td>${money(r.rev / r.p, 2)}</td></tr>`).join('');
+  }
+  segment($('[aria-label="Rank connecting routes by"]'), (b) => { rankKey = b.dataset.rank; drawConnTable(); });
+
+  function drawRouteFares() {
+    const routes = CONNECTING.slice().sort((a, b) => b.p - a.p).slice(0, 10);
+    const labels = routes.map((r) => r.r);
+    const conn = routes.map((r) => +(r.rev / r.p).toFixed(2));
+    const non = routes.map((r) => +(NONSTOP[r.r][1] / NONSTOP[r.r][0]).toFixed(2));
+    charts.routeFare && charts.routeFare.destroy();
+    const o = baseOpts();
+    o.indexAxis = 'y';
+    o.scales = {
+      x: { grid: { color: css('--grid') }, ticks: { color: css('--text-secondary'), callback: (v) => '$' + v }, border: { display: false }, beginAtZero: true },
+      y: { grid: { display: false }, ticks: { color: css('--text-secondary'), font: { family: css('--font-mono') } }, border: { color: css('--grid') } }
+    };
+    o.interaction = { mode: 'index', intersect: false };
+    o.plugins.tooltip.callbacks = {
+      label: (c) => `${c.dataset.label}: ${money(c.raw, 2)}`,
+      footer: (items) => { const d = items[0].raw - items[1].raw; return `Nonstop is ${money(Math.abs(d), 2)} ${d >= 0 ? 'cheaper' : 'pricier'}`; }
+    };
+    o.plugins.tooltip.footerColor = css('--text-primary');
+    charts.routeFare = new Chart($('#routeFareChart'), {
+      type: 'bar',
+      data: { labels, datasets: [
+        Object.assign(bar('Connecting', conn, '--series-2'), { borderSkipped: 'start', borderWidth: { top: 1, bottom: 1 }, maxBarThickness: 14 }),
+        Object.assign(bar('Nonstop', non, '--series-1'), { borderSkipped: 'start', borderWidth: { top: 1, bottom: 1 }, maxBarThickness: 14 })
+      ] },
+      options: o
+    });
+  }
+
+  let carrierRoute = 'LAS-MCO';
+  $('#carrier-seg').innerHTML = Object.keys(CARRIERS).map((r, i) =>
+    `<button data-route="${r}" aria-pressed="${i === 0}">${r}</button>`).join('');
+  segment($('#carrier-seg'), (b) => { carrierRoute = b.dataset.route; drawCarriers(); });
+  function drawCarriers() {
+    const c = CARRIERS[carrierRoute];
+    charts.carrier && charts.carrier.destroy();
+    const o = baseOpts();
+    o.interaction = { mode: 'index', intersect: false };
+    o.plugins.tooltip.callbacks = { label: (x) => `${x.dataset.label}: ~${num(x.raw)} passengers` };
+    o.scales.y.title = { display: true, text: 'Passengers', color: css('--text-muted') };
+    charts.carrier = new Chart($('#carrierChart'), {
+      type: 'bar',
+      data: { labels: c.carriers, datasets: [bar('Connecting', c.conn, '--series-2'), bar('Nonstop', c.non, '--series-1')] },
+      options: o
+    });
+  }
+
+  // ---------------- 3. ULCC ----------------
+  let trendKey = 'bos';
+  segment($('#trend-seg'), (b) => { trendKey = b.dataset.trend; drawTrend(); });
+  function drawTrend() {
+    const t = TRENDS[trendKey];
+    $('#trend-insight').innerHTML = t.insight;
+    charts.trend && charts.trend.destroy();
+    const o = baseOpts();
+    o.interaction = { mode: 'index', intersect: false };
+    o.plugins.tooltip.callbacks = { label: (x) => `${x.dataset.label}: ~${num(x.raw)}` };
+    o.scales.y.title = { display: true, text: 'Passengers', color: css('--text-muted') };
+    const line = (label, data, v) => ({
+      label, data, borderColor: css(v), backgroundColor: css(v), borderWidth: 2,
+      pointRadius: 4, pointHoverRadius: 6, pointBorderColor: css('--card-bg'), pointBorderWidth: 2, tension: 0
+    });
+    charts.trend = new Chart($('#trendChart'), {
+      type: 'line',
+      data: { labels: PERIODS, datasets: [line('Connecting', t.conn, '--series-2'), line('Nonstop', t.non, '--series-1')] },
+      options: o
+    });
+  }
+
+  $('#ulcc-body').innerHTML = ULCC.map((r) =>
+    `<tr><td class="route">${r[0]}</td><td>${num(r[1])}</td><td>${short$(r[2])}</td></tr>`).join('');
+
+  $('#q-seg').innerHTML = [1, 2, 3, 4].map((q) => `<button data-q="${q}" aria-pressed="${q === 1}">Q${q}</button>`).join('');
+  segment($('#q-seg'), (b) => drawTemps(+b.dataset.q));
+  function drawTemps(q) {
+    $('#temps').innerHTML = Object.keys(TEMPS).map((k) =>
+      `<div class="temp"><div class="code">${k}</div><div class="city">${TEMPS[k].city}</div><div class="deg">${TEMPS[k].t[q - 1].toFixed(1)}&deg;F</div></div>`).join('');
+    const gap = TEMPS.SJU.t[q - 1] - TEMPS.BOS.t[q - 1];
+    $('#gap-line').innerHTML = `San Juan is <strong>${gap.toFixed(1)}&deg;F warmer</strong> than Boston in Q${q}` +
+      (q === 1 ? '. Winter has the biggest gap, which is the "escape the cold" case for leisure routes.' : '.');
+  }
+
+  // ---------------- 4. Models ----------------
+  function divColor(v) {
+    // Diverging: blue (neg) -> neutral -> red (pos), mixed in sRGB
+    const mid = css('--div-mid'), pole = v < 0 ? css('--div-neg') : css('--div-pos');
+    const pct = Math.round(Math.min(1, Math.abs(v)) * 100);
+    return `color-mix(in srgb, ${pole} ${pct}%, ${mid})`;
+  }
+  function drawHeat() {
+    const SHORT = ['Rev', 'Pax', 'Dist', 'O temp', 'D temp', 'Nonstop'];
+    let h = '<div></div>' + SHORT.map((v, i) => `<div class="h" title="${CORR_VARS[i]}">${v}</div>`).join('');
+    CORR.forEach((row, i) => {
+      h += `<div class="h r">${CORR_VARS[i]}</div>`;
+      row.forEach((v, j) => {
+        const strong = Math.abs(v) > 0.6;
+        h += `<div class="c" style="background:${divColor(v)};${strong ? 'color:#fff' : ''}" title="${CORR_VARS[i]} vs ${CORR_VARS[j]}: ${v.toFixed(2)}">${v.toFixed(2)}</div>`;
+      });
+    });
+    $('#heat').innerHTML = h;
+  }
+
+  function drawPred(q) {
+    const p = ALB_TPA[q - 1];
+    $('#q-label').textContent = 'Q' + q;
+    $('#p-orig').textContent = p.o.toFixed(1) + '°F';
+    $('#p-dest').textContent = p.d.toFixed(1) + '°F';
+    $('#p-rev').textContent = money(p.rev);
+    const diff = p.rev - ALB_TPA[2].rev;
+    $('#p-note').innerHTML = q === 1
+      ? 'Q1 is the highest, but not because of the cold-to-warm gap. The model gives <em>both</em> temperatures a negative coefficient (&minus;$110/&deg;F at the origin, &minus;$191/&deg;F at the destination), so it simply favors colder quarters.'
+      : q === 3
+        ? 'Summer (Q3) is the lowest. The whole seasonal swing is under 3% of revenue. Existing demand ($199 per passenger) drives almost all of the prediction.'
+        : `${money(diff)} more than summer (Q3), since both airports are colder than in Q3.`;
+  }
+  $('#q-slider').addEventListener('input', (e) => drawPred(+e.target.value));
+
+  // ---------------- 5. Opportunities ----------------
+  const REGIONS = ['All', 'Northeast', 'West', 'South'];
+  let region = 'All', selected = null;
+  $('#region-seg').innerHTML = REGIONS.map((r, i) => `<button data-region="${r}" aria-pressed="${i === 0}">${r}</button>`).join('');
+  segment($('#region-seg'), (b) => { region = b.dataset.region; drawOpps(); });
+  function drawOpps() {
+    const rows = OPPS.filter((x) => region === 'All' || x.or === region || x.dr === region);
+    const max = OPPS[0].rev;
+    $('#opp-body').innerHTML = rows.map((x) => {
+      const id = x.o + '-' + x.d;
+      return `<tr class="clickable ${selected === id ? 'selected' : ''}" data-id="${id}" tabindex="0">
+        <td class="route">${x.o}&rarr;${x.d}${x.launched ? '<span class="pill good">&#10003; ' + x.launched + '</span>' : ''}</td>
+        <td>${num(Math.round(x.dist))}</td><td>${num(x.pax)}</td><td>${x.or} &rarr; ${x.dr}</td>
+        <td><span style="display:inline-flex;align-items:center;gap:8px">
+          <span style="display:inline-block;height:8px;width:${Math.round(x.rev / max * 80)}px;background:var(--series-1);border-radius:4px"></span>${money(x.rev)}</span></td></tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No routes in this region</td></tr>';
+    $('#opp-body').querySelectorAll('tr[data-id]').forEach((tr) => {
+      const pick = () => { selected = tr.dataset.id; drawOpps(); showOpp(); };
+      tr.addEventListener('click', pick);
+      tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+  }
+  function showOpp() {
+    const x = OPPS.find((o) => o.o + '-' + o.d === selected);
+    if (!x) return;
+    const perPax = x.pax > 0 ? x.rev / x.pax : 0;
+    let msg = `<span class="route">${x.o} &rarr; ${x.d}</span>: ${num(Math.round(x.dist))} miles, ${x.or} to ${x.dr}. ` +
+      `${num(x.pax)} passengers currently connect on this route (10% sample). Model 3 predicts <strong>${money(x.rev)}</strong> in quarterly nonstop revenue`;
+    msg += x.pax >= 50 ? `, about ${money(perPax)} per existing connecting passenger.` : '.';
+    if (x.pax < 50) msg += ' <em>Existing demand is very thin here, so treat this as an outlier the random forest may be overrating.</em>';
+    if (x.launched) msg += ` <strong>${x.launched}</strong> since the analysis.`;
+    $('#opp-detail').innerHTML = msg;
+  }
+
+  // ---------------- Theme ----------------
+  function drawCharts() {
+    if (!window.Chart) return;
+    Chart.defaults.font.family = css('--font-sans');
+    drawFares(); drawRouteFares(); drawCarriers(); drawTrend();
+  }
+  $('#theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('portfolio-theme', next); } catch (e) {}
+    drawCharts(); drawHeat();
+  });
+
+  drawConnTable(); drawTemps(1); drawHeat(); drawPred(1); drawOpps();
+  drawCharts();
+})();
+</script>
+
+<script>
+// ======================================================================
+// Route revenue predictor: a browser port of predict_profitability()
+// (Model 1, linear regression) from the notebook.
+// Data files are exported from Colab into ./data/ by lcc_export_cell.py
+// ======================================================================
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const money = (n) => (n < 0 ? '−$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+  const status = (msg, isErr) => { const s = $('#pred-status'); s.textContent = msg || ''; s.className = 'pred-status' + (isErr ? ' error' : ''); };
+
+  let MODEL = null, AIRPORTS = null, ROUTES = null, routesPromise = null, chart = null, last = null;
+  const weatherCache = {};
+
+  // ---- Same helpers as the notebook ----
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 3958.8, rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+  }
+  function getRegion(lat, lon) {
+    if (lon > -80 && lat > 39) return 'Northeast';
+    if (lon > -104 && lon <= -80 && lat > 36) return 'Midwest';
+    if (lon > -104 && lat <= 39) return 'South';
+    return 'West';
+  }
+  const proxyTemp = (lat) => 100 - lat * 1.2;
+
+  // One request per airport for all of 2024, split into quarterly means
+  async function quarterlyTemps(code, lat, lon) {
+    if (weatherCache[code]) return weatherCache[code];
+    const url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + lat + '&longitude=' + lon +
+      '&start_date=2024-01-01&end_date=2024-12-31&daily=temperature_2m_mean&temperature_unit=fahrenheit&timezone=auto';
+    let temps = null;
+    try {
+      const r = await fetch(url);
+      if (r.ok) {
+        const j = await r.json();
+        const sums = [0, 0, 0, 0], counts = [0, 0, 0, 0];
+        j.daily.time.forEach((t, i) => {
+          const v = j.daily.temperature_2m_mean[i];
+          if (v == null) return;
+          const q = Math.floor((+t.slice(5, 7) - 1) / 3);
+          sums[q] += v; counts[q]++;
+        });
+        if (counts.every((c) => c > 0)) temps = sums.map((s, i) => s / counts[i]);
+      }
+    } catch (e) { /* fall through to proxy */ }
+    const res = temps ? { t: temps, live: true } : { t: [0, 1, 2, 3].map(() => proxyTemp(lat)), live: false };
+    weatherCache[code] = res;
+    return res;
+  }
+
+  function predict(features) {
+    let y = MODEL.intercept;
+    for (const name in MODEL.coef) y += MODEL.coef[name] * (features[name] || 0);
+    return y;
+  }
+
+  // ---- Data loading ----
+  async function loadBase() {
+    try {
+      const [m, a] = await Promise.all([
+        fetch('data/lcc_model1.json').then((r) => { if (!r.ok) throw 0; return r.json(); }),
+        fetch('data/lcc_airports.json').then((r) => { if (!r.ok) throw 0; return r.json(); })
+      ]);
+      MODEL = m; AIRPORTS = a;
+      const opts = Object.keys(AIRPORTS).sort().map((c) =>
+        `<option value="${c}">${AIRPORTS[c][1] || ''} · ${AIRPORTS[c][0]}</option>`);
+      $('#airport-list').innerHTML = opts.join('');
+      // Routes file is larger, so start loading it in the background
+      routesPromise = fetch('data/lcc_routes.json').then((r) => r.json()).then((j) => (ROUTES = j));
+    } catch (e) {
+      $('#pf-go').disabled = true;
+      status('The prediction model isn\'t available right now. The rest of the analysis below still works.', true);
+    }
+  }
+
+  const parseCode = (v) => {
+    const m = String(v || '').toUpperCase().match(/\b[A-Z]{3}\b/);
+    return m ? m[0] : '';
+  };
+
+  async function run(origin, dest) {
+    if (!MODEL) return;
+    $('#pred-result').hidden = true;
+    last = null;
+    if (!AIRPORTS[origin]) return status(`"${origin || '?'}" isn't an airport in the BTS data. Use a 3-letter code like BOS.`, true);
+    if (!AIRPORTS[dest]) return status(`"${dest || '?'}" isn't an airport in the BTS data. Use a 3-letter code like MCO.`, true);
+    if (origin === dest) return status('Origin and destination must be different airports.', true);
+
+    $('#pf-go').disabled = true;
+    status(`Fetching 2024 weather for ${origin} and ${dest}...`);
+    try {
+      const [oName, oCity, oLat, oLon] = AIRPORTS[origin];
+      const [dName, dCity, dLat, dLon] = AIRPORTS[dest];
+      if (!ROUTES) await routesPromise;
+      const [ow, dw] = await Promise.all([quarterlyTemps(origin, oLat, oLon), quarterlyTemps(dest, dLat, dLon)]);
+
+      const dist = haversine(oLat, oLon, dLat, dLon);
+      const oReg = getRegion(oLat, oLon), dReg = getRegion(dLat, dLon);
+      const rd = ROUTES[origin + '-' + dest];
+      const demand = rd ? rd[0] : 0, comp = rd ? rd[1] : 0;
+
+      const quarters = [0, 1, 2, 3].map((q) => {
+        const f = {
+          Orig_Temp: ow.t[q], Dest_Temp: dw.t[q], Distance: dist,
+          Total_Passengers: demand, Nonstop_Exists: comp
+        };
+        f['Orig_Region_' + oReg] = 1;
+        f['Dest_Region_' + dReg] = 1;
+        return { q: q + 1, ot: ow.t[q], dt: dw.t[q], rev: predict(f) };
+      });
+
+      last = { origin, dest, oCity, dCity, dist, oReg, dReg, demand, comp, quarters, live: ow.live && dw.live, known: !!rd };
+      render();
+      status('');
+    } catch (e) {
+      status('Something went wrong running the prediction. Please try again.', true);
+    } finally {
+      $('#pf-go').disabled = false;
+    }
+  }
+
+  function render() {
+    if (!last) return;
+    const L = last, best = L.quarters.reduce((a, b) => (b.rev > a.rev ? b : a));
+    $('#pred-result').hidden = false;
+    $('#pr-best').textContent = best.rev > 0 ? money(best.rev) : '$0';
+    $('#pr-best-sub').textContent = `Q${best.q} · ${L.origin} → ${L.dest}`;
+    $('#pr-facts').innerHTML = [
+      ['Distance', Math.round(L.dist).toLocaleString('en-US') + ' mi'],
+      ['Regions', `${L.oReg} → ${L.dReg}`],
+      ['Current demand', L.demand.toLocaleString('en-US') + ' passengers'],
+      ['Nonstop competition', L.comp ? 'Yes' : 'No']
+    ].map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('');
+    $('#pr-oh').textContent = L.origin + ' temp';
+    $('#pr-dh').textContent = L.dest + ' temp';
+    $('#pr-body').innerHTML = L.quarters.map((x) =>
+      `<tr class="${x === best ? 'best' : ''}"><td>Q${x.q}</td><td>${x.ot.toFixed(1)}°F</td><td>${x.dt.toFixed(1)}°F</td><td>${money(x.rev)}</td></tr>`).join('');
+
+    const notes = [];
+    if (!L.known) notes.push(`No passengers flew ${L.origin}→${L.dest} in the 2025 Q1 sample, so demand is set to 0, the same as the notebook does.`);
+    if (L.quarters.some((x) => x.rev < 0)) notes.push('A negative value means the linear model is outside its valid range, a known limitation (see section 06). Treat it as $0.');
+    if (!L.live) notes.push('Live weather was unavailable, so a latitude-based temperature estimate was used.');
+    notes.push(`Estimates are quarterly revenue on the 10% BTS sample. Model R² = ${MODEL.metrics.r2.toFixed(3)}.`);
+    $('#pr-note').textContent = notes.join(' ');
+
+    chart && chart.destroy();
+    const ink = css('--text-secondary'), grid = css('--grid');
+    chart = new Chart($('#predChart'), {
+      type: 'bar',
+      data: { labels: ['Q1', 'Q2', 'Q3', 'Q4'], datasets: [{
+        label: 'Predicted revenue', data: L.quarters.map((x) => Math.round(x.rev)),
+        backgroundColor: L.quarters.map((x) => x === best ? css('--series-1') : css('--series-1') + '80'),
+        borderRadius: 4, borderSkipped: 'start', maxBarThickness: 64
+      }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: css('--bg-secondary'), titleColor: css('--text-primary'), bodyColor: ink,
+            borderColor: css('--border-color'), borderWidth: 1, padding: 10,
+            callbacks: { label: (c) => 'Predicted revenue: ' + money(c.raw) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: ink }, border: { color: grid } },
+          y: { grid: { color: grid }, border: { display: false }, ticks: { color: ink, callback: (v) => money(v) } }
+        }
+      }
+    });
+  }
+
+  // ---- Wiring ----
+  $('#pred-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(parseCode($('#pf-orig').value), parseCode($('#pf-dest').value));
+  });
+  $('#pf-swap').addEventListener('click', () => {
+    const o = $('#pf-orig').value; $('#pf-orig').value = $('#pf-dest').value; $('#pf-dest').value = o;
+  });
+  document.querySelectorAll('.examples [data-ex]').forEach((b) => b.addEventListener('click', () => {
+    const [o, d] = b.dataset.ex.split('-');
+    $('#pf-orig').value = o; $('#pf-dest').value = d;
+    run(o, d);
+  }));
+  // Redraw the chart in the new theme's colors
+  new MutationObserver(() => render()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  loadBase();
+})();
+</script>
+</body>
+</html>
